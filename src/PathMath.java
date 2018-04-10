@@ -1,11 +1,32 @@
 
+/**
+ * This is a helper class for the {@link Path} class. It does the heavy lifting on the math. It is able to go from
+ * a description of motion in polar coordinates (with constants angular and linear acceleration) and find the position
+ * at any given time.
+ * 
+ * In order to use this class, you must first call {@link #cacheConstants(double, double)} and input the angular acceleration
+ * and initial angular velocity. Some slightly intensive constants are calculated in this function, then the rest of the 
+ * functions will work properly.
+ * 
+ * @author andrew
+ *
+ */
 public class PathMath {
 	
-	public static final int TAYLOR_TERMS = 7+1; //+1 for OBOB
+	public static final int TAYLOR_TERMS = 7;
+	private static final int TAYLOR_TERMS_OBOB = TAYLOR_TERMS+1; //+1 for OBOB
 	
+	// Cached constants for performance
 	private static double SQRT_A, INV_SQRT_A, INV_A, ADD_CONSTANT;
 	private static int SIGN;
 	
+	/**
+	 * Caches constants needed in the taylor series's later on,
+	 * for performance reasons.
+	 * 
+	 * @param a Angular acceleration (radians)
+	 * @param b Initial angular velocity (radians)
+	 */
 	public static void cacheConstants(double a, double b) {
 		SIGN = (int) Math.signum(a);
 		a = Math.abs(a);
@@ -15,10 +36,21 @@ public class PathMath {
 		ADD_CONSTANT = SIGN*b/(2*SQRT_A);
 	}
 	
+	/**
+	 * Taylor series for the first integral of cosine, where the
+	 * function inside the cosine is more complicated than simple "x".
+	 * Specifically, the angle at any given time is a quadratic dependent
+	 * on angular acceleration and initial angular velocity, which makes taking
+	 * the antiderivative hard. The number of terms of the taylor series is
+	 * {@value #TAYLOR_TERMS}
+	 * 
+	 * @param x Time
+	 * @return Approximation for integral of the cosine of a function
+	 */
 	public static double cI1(double x) {
 		double sum = 0;
 		int termSign = 1;
-		for (int i = 0; i < TAYLOR_TERMS; i++) {
+		for (int i = 0; i < TAYLOR_TERMS_OBOB; i++) {
 			long outer = termSign * ((4*i+1) * factorial(2*i));
 			termSign *= -1;
 			
@@ -32,11 +64,17 @@ public class PathMath {
 		return sum;
 	}
 	
+	/**
+	 * Integral of {@link #cI1(double)}.
+	 * 
+	 * @param x Time
+	 * @return Approximation for second integral of the cosine of a function
+	 */
 	public static double cI2(double x) {
 		double sum = 0;
 		double c = 0;
 		int termSign = 1;
-		for (int i = 0; i < TAYLOR_TERMS; i++) {
+		for (int i = 0; i < TAYLOR_TERMS_OBOB; i++) {
 			long outer = termSign * ((4*i+1) * factorial(2*i));
 			c += Math.pow(ADD_CONSTANT, 4*i+1) / outer;
 
@@ -55,10 +93,16 @@ public class PathMath {
 		return sum - c;
 	}
 	
+	/**
+	 * Same as {@link #cI1(double)}, except this Taylor series approximates sine.
+	 * 
+	 * @param x Time
+	 * @return Approximation for integral of the sine of a function
+	 */
 	public static double sI1(double x) {
 		double sum = 0;
 		int termSign = 1;
-		for (int i = 0; i < TAYLOR_TERMS; i++) {
+		for (int i = 0; i < TAYLOR_TERMS_OBOB; i++) {
 			long outer = termSign * ((4*i+3) * factorial(2*i+1));
 			termSign *= -1;
 			
@@ -72,11 +116,17 @@ public class PathMath {
 		return sum;
 	}
 	
+	/**
+	 * Integral of {@link #sI1(double)}.
+	 * 
+	 * @param x Time
+	 * @return Approximation for second integral of the sine of a function
+	 */
 	public static double sI2(double x) {
 		double sum = 0;
 		double c = 0;
 		int termSign = 1;
-		for (int i = 0; i < TAYLOR_TERMS; i++) {
+		for (int i = 0; i < TAYLOR_TERMS_OBOB; i++) {
 			long outer = termSign * ((4*i+3) * factorial(2*i+1));
 			c += Math.pow(ADD_CONSTANT, 4*i+3) / outer;
 
@@ -95,22 +145,60 @@ public class PathMath {
 		return sum - c;
 	}
 	
+	/**
+	 * When angular acceleration is 0, the antiderivative is greatly simplified, so can simply
+	 * be expressed without a Taylor series
+	 * 
+	 * @param x Time
+	 * @param b Initial angular velocity
+	 * @return Integral of cosine of a function
+	 */
 	public static double cI1S(double x, double b) {
 		return Math.sin(b*x) / b;
 	}
 	
+	/**
+	 * Integral of {@link #cI1S(double, double)}.
+	 * 
+	 * @param x Time
+	 * @param b Initial angular velocity
+	 * @return 2nd Integral of cosine of a function
+	 */
 	public static double cI2S(double x, double b) {
 		return (1 - Math.cos(b*x) ) / (b*b);
 	}
 	
+	/**
+	 * Same as {@link #cI1S(double, double)}, except for sine.
+	 * 
+	 * @param x Time
+	 * @param b Initial angular velocity
+	 * @return Integral of sine of a function
+	 */
 	public static double sI1S(double x, double b) {
 		return (1 - Math.cos(b*x)) / b;
 	}
 	
+	/**
+	 * Integral of {@link #sI1S(double, double)}.
+	 * 
+	 * @param x Time
+	 * @param b Initial angular velocity
+	 * @return Integral of sine of a function
+	 */
 	public static double sI2S(double x, double b) {
 		return (b*x - Math.sin(b*x) ) / (b*b);
 	}
 	
+	/**
+	 * As a result of simplification, the ending x and y positions are rotated around 
+	 * the origin by some angle. In order to find correct x and y, the points need to be
+	 * rotated back by that angle. This function finds the angle that x and y were offset by
+	 * 
+	 * @param a Angular acceleration
+	 * @param b Initial angular velocity
+	 * @return radians offset
+	 */
 	public static double offset(double a, double b) {
 		if (a == 0) {
 			return 0;
@@ -148,6 +236,7 @@ public class PathMath {
 	/**
 	 * Integrates to find position of a point with given path.
 	 * Writes location into given point.
+	 * Uses tabular integration.
 	 * 
 	 * @param t Time to integrate to
 	 * @param tA Theta acceleration

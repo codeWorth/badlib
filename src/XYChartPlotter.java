@@ -20,6 +20,18 @@ public class XYChartPlotter extends ApplicationFrame {
 	public XYChartPlotter(final String title) {
 
 		super(title);
+		
+		double[][] params = new double[30][];
+		
+		int n = 0;
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 3; j++) {
+				params[n] = new double[]{1.35, 1.35 - j*0.05, 0.2, 0, 20, 20, Math.PI/8 * i + Math.PI/4};
+				n++;
+				params[n] = new double[]{0.75, 1.35 - j*0.05, 0.2, 0, 20, 20, Math.PI/8 * i + Math.PI/4};
+				n++;
+			}
+		}
 
 		/*final XYDataset dataset = createMultiPathDataset(
 			new double[]{1.35, 1.5, 0.2, 0, 20, 20, Math.PI/4}, 
@@ -27,14 +39,15 @@ public class XYChartPlotter extends ApplicationFrame {
 			new double[]{1.35, 1.4, 0.2, 0, 20, 20, Math.PI/4},
 			new double[]{1.35, 1.35, 0.2, 0, 20, 20, Math.PI/4},
 			new double[]{1.35, 1.3, 0.2, 0, 20, 20, Math.PI/4},
-			new double[]{1.35, 1.25, 0.35, 0, 20, 20, Math.PI/4}
-		);
-		final JFreeChart chart = createChart(dataset);*/
+			new double[]{1.35, 1.25, 0.2, 0, 20, 20, Math.PI/4}
+		);*/
+		final XYDataset dataset = createMultiPathDataset(params);
+		final JFreeChart chart = createChart(dataset);
 		
-		final XYDataset[] datasets = createSinglePathDataset(2.5, -2.5, 1, 0, 20, 20, 0);
+		/*final XYDataset[] datasets = createSinglePathDataset(2.5, -2.5, 1, 0, 20, 20, 0);
 		final XYDataset left = datasets[0];
 		final XYDataset right = datasets[1];
-		final JFreeChart chart = createChart(left, right);
+		final JFreeChart chart = createChart(left, right);*/
 		
 		final ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setPreferredSize(new java.awt.Dimension(700, 700));
@@ -106,7 +119,7 @@ public class XYChartPlotter extends ApplicationFrame {
 		
 		int samples = 100;
 		for (int j = 0; j < parameters.length; j++) {
-			/*for (int i = 0; i <= samples; i ++) {
+			for (int i = 0; i <= samples; i ++) {
 				double t = ((double)i) * paths[j].duration() / samples;
 				paths[j].position(t, pos);
 				double x = pos.x;
@@ -115,10 +128,11 @@ public class XYChartPlotter extends ApplicationFrame {
 				y = Math.floor(y * 10000) / 10000;
 				
 				serieses[j].add(x, y);
-			}*/
+			}
 			paths[j].position(paths[j].duration(), pos);
 			serieses[j].add(pos.x, pos.y);
 			dataset.addSeries(serieses[j]);
+			System.out.println(pos.x + "\t" + pos.y);
 		}
 
 		return dataset;
@@ -180,7 +194,7 @@ public class XYChartPlotter extends ApplicationFrame {
 
 		// create the chart...
 		final JFreeChart chart = ChartFactory.createXYLineChart(
-				"Robot Path",      // chart title
+				"Robot Positions",      // chart title
 				"X",                      // x axis label
 				"Y",                      // y axis label
 				data,                  // data
@@ -205,8 +219,8 @@ public class XYChartPlotter extends ApplicationFrame {
 
 		final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 		for (int i = 0; i < data.getSeriesCount(); i++) {
-			renderer.setSeriesLinesVisible(i, false);
-			renderer.setSeriesShapesVisible(i, true);
+			renderer.setSeriesLinesVisible(i, true);
+			renderer.setSeriesShapesVisible(i, false);
 		}
 		plot.setRenderer(renderer);
 

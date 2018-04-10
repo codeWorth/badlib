@@ -1,33 +1,42 @@
 
+/**
+ * This class takes in specific inputs for how the robot should be moving over a period of time
+ * and creates a path from that information. You can query this class's methods to find different pieces of 
+ * information about the path at a given time.
+ * 
+ * @author andrew
+ *
+ */
 public class Path {
 	
-	public static double ANGLE_MAX_ACCEL = Math.PI*2; //radians per second per second
-	public static double POSITION_MAX_ACCEL = 100; //inches per second per second
+	public static double ANGLE_MAX_ACCEL = Math.PI*2; //radians
+	public static double POSITION_MAX_ACCEL = 100; //inches
 	public static double ROBOT_RADIUS = 1;
 
-	private double A,B,C; // omega change periods (time in seconds)
-	private double Q,R,S; // speed change periods (time in seconds)
-	private double T; // total period (time in seconds)
-	private double tA, tM, tD; // thetaAccel, thetaMiddle, and thetaDecel, radians per second per second
-	private double pA,pD; // positionAccel and positionDecel, inches per second per second
-	private double sO; // initial speed, inches per second
-	private double T1, T2, T3, T4, T5; // times at discontinuities (in seconds)
+	private double A,B,C; // omega change periods, time
+	private double Q,R,S; // speed change periods, time
+	private double T; // total period, time
+	private double tA, tM, tD; // thetaAccel, thetaMiddle, and thetaDecel, radians
+	private double pA,pD; // positionAccel and positionDecel
+	private double sO; // initial speed
+	private double T1, T2, T3, T4, T5; // times at discontinuities
 	private Point p1, p2, p3, p4; // Points at each discontinuity
 	private double tA1, pA1, tA2, pA2, tA3, tA4, pA4, tA5, pA5; // linear and angular acceleration for each endpoint
 	private double o2, o3, o4, o5; // offset angles for each endpoint
-	private Point s0, s1, s2, s3, s4, s5;
+	private Point s0, s1, s2, s3, s4, s5; // speed of the wheels at each endpoint
 	
 	/**
 	 * Create a path, if possible, with these given parameters.
 	 * Will use {@link #ANGLE_MAX_ACCEL} and {@link #POSITION_MAX_ACCEL}, or smaller for 
 	 * linear and angular acceleration.
 	 * 
-	 * @param angleAccelTime Time to accelerate angle
-	 * @param angleDecelTime Time to decelerate angle
-	 * @param startSpeed Speed that robot begins at
-	 * @param wantedSpeed Speed wanted once robot has finished accelerating
-	 * @param endSpeed Speed wanted once robot has completed path
-	 * @param deltaTheta Total change in angle wanted
+	 * @param omega1 starting target angular velocity
+	 * @param omega2 ending target angular velocity
+	 * @param middleTime time to go from omega1 to omega2
+	 * @param startSpeed starting linear speed
+	 * @param wantedSpeed wanted linear speed at max
+	 * @param endSpeed wanted linear speed once finished
+	 * @param deltaTheta total change in theta from point A to B 
 	 */
 	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
 		if (deltaTheta * omega1 < 0) {
@@ -81,6 +90,8 @@ public class Path {
 		T4 = Math.max(A+B, Q+R);
 		T5 = T;
 		
+		// from here on down it's all caching things for higher performance
+		
 		tA1 = angularAcceleration(T1);
 		tA2 = angularAcceleration(T2);
 		tA3 = angularAcceleration(T3);
@@ -121,6 +132,12 @@ public class Path {
 
 	}
 	
+	/**
+	 * Returns angle of the robot as a function of time
+	 * 
+	 * @param t
+	 * @return Angle in radians
+	 */
 	public double angle(double t) {
 		if (t < 0) {
 			return 0;
@@ -135,6 +152,12 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Returns angular velocity of the robot as a function of time
+	 * 
+	 * @param t
+	 * @return Omega (radians)
+	 */
 	public double omega(double t) {
 		if (t < 0) {
 			return 0;
@@ -149,6 +172,12 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Returns angular acceleration of the robot as a function of time
+	 * 
+	 * @param t
+	 * @return Alpha (radians)
+	 */
 	public double angularAcceleration(double t) {
 		if (t < 0) {
 			return 0;
@@ -163,6 +192,12 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Returns speed in the direction the robot is facing as a function of time
+	 * 
+	 * @param t
+	 * @return Speed
+	 */
 	public double speed(double t) {
 		if (t < 0) {
 			return sO;
@@ -177,6 +212,12 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Returns acceleration in the direction the robot is facing as a function of time
+	 * 
+	 * @param t
+	 * @return Acceleration
+	 */
 	public double linearAcceleration(double t) {
 		if (t < 0) {
 			return 0;
@@ -191,6 +232,12 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Finds the (x, y) position of the robot at time t
+	 *
+	 * @param t
+	 * @param dest The {@link Point} to put the coordinates into.
+	 */
 	public void position(double t, Point dest) {
 		if (t < 0) {
 			
@@ -239,6 +286,13 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Finds the position of each wheel as a function of time. 
+	 * 
+	 * @param t
+	 * @param left Left wheel's (x, y) position as a {@link Point}
+	 * @param right Right wheel's (x, y) position as a {@link Point}
+	 */
 	public void wheelPositions(double t, Point left, Point right) {
 		double angle = this.angle(t) - Math.PI/2;
 		position(t, left);
@@ -251,6 +305,12 @@ public class Path {
 		left.y += ROBOT_RADIUS * Math.sin(angle);
 	}
 	
+	/**
+	 * Finds the speed of the wheel in units at the given time.
+	 * 
+	 * @param t
+	 * @param dest A {@link Point} where x is the left wheel and y is the right wheel -- (left, right)
+	 */
 	public void wheelSpeeds(double t, Point dest) {
 		double speed = speed(t);
 		double omega = omega(t);
@@ -260,6 +320,12 @@ public class Path {
 		dest.y = speed + tangential;
 	}
 	
+	/**
+	 * Finds the distance each wheel has traveled in units at the given time.
+	 * 
+	 * @param t
+	 * @param dest A {@link Point} where x is the left wheel and y is the right wheel -- (left, right)
+	 */
 	public void wheelDistances(double t, Point dest) {
 		if (t < 0) {
 			dest.x = 0;
@@ -290,6 +356,10 @@ public class Path {
 		}
 	}
 	
+	/**
+	 * Time for the whole path to complete
+	 * @return Time
+	 */
 	public double duration() {
 		return T;
 	}
@@ -299,25 +369,14 @@ public class Path {
 	}
 	
 	public static void main(String[] args) {
-		Point finalPos = new Point();
-		
-		for (int i = 10; i <= 30; i++) {
-			double d = i/20.0;
-			Path path = new Path(d, d, 0.3, 0, 20, 20, Math.PI/2);
-			path.position(path.duration(), finalPos);
-			double x = Math.floor(finalPos.x*10000) / 10000;
-			double y = Math.floor(finalPos.y*10000) / 10000;
-			System.out.println(x + "\t" + y);
+		double time = System.currentTimeMillis();
+		int samples = 100000;
+		Point point = new Point();
+		for (int i = 0; i < samples; i++) {
+			Path path = new Path(1.35, 1.15, 0.2, 0, 20, 20, Math.PI/3);
+			path.position(path.duration(), point);
 		}
-		
-		for (int i = 10; i <= 30; i++) {
-			double d = i/20.0;
-			Path path = new Path(d, d, 0.3, 0, 20, 20, Math.PI/2);
-			path.position(path.duration(), finalPos);
-			double x = Math.floor(finalPos.x*10000) / 10000;
-			double y = Math.floor(finalPos.y*10000) / 10000;
-			System.out.println(path.duration() + ": \t" + x + "\t" + y);
-		}
+		System.out.println(System.currentTimeMillis() - time);
 	}
 	
 }
