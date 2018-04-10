@@ -370,13 +370,14 @@ public class Path {
 	
 	public static void main(String[] args) {
 		double time = System.currentTimeMillis();
-		int samples = 100000;
+		int samples = 1000000;
 		Point point = new Point();
 		for (int i = 0; i < samples; i++) {
 			Path path = new Path(1.35, 1.15, 0.2, 0, 20, 20, Math.PI/3);
 			path.position(path.duration(), point);
 		}
-		System.out.println(System.currentTimeMillis() - time);
+		System.out.println(samples + " samples done!");
+		System.out.println("Took " + (System.currentTimeMillis() - time)/1000 + " seconds.");
 	}
 	
 }

@@ -13,7 +13,7 @@
  */
 public class PathMath {
 	
-	public static final int TAYLOR_TERMS = 7;
+	public static final int TAYLOR_TERMS = 1;
 	private static final int TAYLOR_TERMS_OBOB = TAYLOR_TERMS+1; //+1 for OBOB
 	
 	// Cached constants for performance

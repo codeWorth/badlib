@@ -21,7 +21,7 @@ public class XYChartPlotter extends ApplicationFrame {
 
 		super(title);
 		
-		double[][] params = new double[30][];
+		/*double[][] params = new double[30][];
 		
 		int n = 0;
 		for (int i = 0; i < 5; i++) {
@@ -40,14 +40,14 @@ public class XYChartPlotter extends ApplicationFrame {
 			new double[]{1.35, 1.35, 0.2, 0, 20, 20, Math.PI/4},
 			new double[]{1.35, 1.3, 0.2, 0, 20, 20, Math.PI/4},
 			new double[]{1.35, 1.25, 0.2, 0, 20, 20, Math.PI/4}
-		);*/
+		);
 		final XYDataset dataset = createMultiPathDataset(params);
-		final JFreeChart chart = createChart(dataset);
+		final JFreeChart chart = createChart(dataset);*/
 		
-		/*final XYDataset[] datasets = createSinglePathDataset(2.5, -2.5, 1, 0, 20, 20, 0);
+		final XYDataset[] datasets = createSinglePathDataset(2.5, -2.5, 1, 0, 20, 20, 0);
 		final XYDataset left = datasets[0];
 		final XYDataset right = datasets[1];
-		final JFreeChart chart = createChart(left, right);*/
+		final JFreeChart chart = createChart(left, right);
 		
 		final ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setPreferredSize(new java.awt.Dimension(700, 700));
