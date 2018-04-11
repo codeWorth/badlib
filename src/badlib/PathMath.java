@@ -1,3 +1,4 @@
+package badlib;
 
 /**
  * This is a helper class for the {@link Path} class. It does the heavy lifting on the math. It is able to go from
@@ -13,7 +14,7 @@
  */
 public class PathMath {
 	
-	public static final int TAYLOR_TERMS = 1;
+	public static final int TAYLOR_TERMS = 7;
 	private static final int TAYLOR_TERMS_OBOB = TAYLOR_TERMS+1; //+1 for OBOB
 	
 	// Cached constants for performance

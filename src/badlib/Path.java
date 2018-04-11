@@ -1,3 +1,4 @@
+package badlib;
 
 /**
  * This class takes in specific inputs for how the robot should be moving over a period of time
@@ -10,7 +11,7 @@
 public class Path {
 	
 	public static double ANGLE_MAX_ACCEL = Math.PI*2; //radians
-	public static double POSITION_MAX_ACCEL = 100; //inches
+	public static double POSITION_MAX_ACCEL = 50; //inches
 	public static double ROBOT_RADIUS = 1;
 
 	private double A,B,C; // omega change periods, time
@@ -24,9 +25,42 @@ public class Path {
 	private double tA1, pA1, tA2, pA2, tA3, tA4, pA4, tA5, pA5; // linear and angular acceleration for each endpoint
 	private double o2, o3, o4, o5; // offset angles for each endpoint
 	private Point s0, s1, s2, s3, s4, s5; // speed of the wheels at each endpoint
+
+	/**
+	 * Creates an empty path. Use {@link #initialize(double, double, double, double, double, double, double)} to set path info.
+	 */
+	public Path() {
+		p1 = new Point();
+		p2 = new Point();
+		p3 = new Point();
+		p4 = new Point();
+		
+		s0 = new Point();
+		s1 = new Point();
+		s2 = new Point();
+		s3 = new Point();
+		s4 = new Point();
+		s5 = new Point();
+	}
 	
 	/**
-	 * Create a path, if possible, with these given parameters.
+	 * Creates a new path with the given parameters using {@link #initialize(double, double, double, double, double, double, double)}
+	 * 
+	 * @param omega1 starting target angular velocity
+	 * @param omega2 ending target angular velocity
+	 * @param middleTime time to go from omega1 to omega2
+	 * @param startSpeed starting linear speed
+	 * @param wantedSpeed wanted linear speed at max
+	 * @param endSpeed wanted linear speed once finished
+	 * @param deltaTheta total change in theta from point A to B 
+	 */
+	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
+		this();
+		initialize(omega1, omega2, middleTime, startSpeed, wantedSpeed, endSpeed, deltaTheta);
+	}
+	
+	/**
+	 * Initialize a path, if possible, with these given parameters.
 	 * Will use {@link #ANGLE_MAX_ACCEL} and {@link #POSITION_MAX_ACCEL}, or smaller for 
 	 * linear and angular acceleration.
 	 * 
@@ -38,7 +72,7 @@ public class Path {
 	 * @param endSpeed wanted linear speed once finished
 	 * @param deltaTheta total change in theta from point A to B 
 	 */
-	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
+	public void initialize(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
 		if (deltaTheta * omega1 < 0) {
 			System.out.println("You're trying to accelerate in the wrong direction!");
 			throw new IllegalArgumentException();
@@ -108,28 +142,79 @@ public class Path {
 		o4 = PathMath.offset(tA4, omega(T3)) - angle(T3);
 		o5 = PathMath.offset(tA5, omega(T4)) - angle(T4);
 		
-		p1 = new Point();
 		position(T1, p1);
-		p2 = new Point();
 		position(T2, p2);
-		p3 = new Point();
 		position(T3, p3);
-		p4 = new Point();
 		position(T4, p4);
 		
-		s0 = new Point();
 		wheelSpeeds(0, s0);
-		s1 = new Point();
 		wheelSpeeds(T1, s1);
-		s2 = new Point();
 		wheelSpeeds(T2, s2);
-		s3 = new Point();
 		wheelSpeeds(T3, s3);
-		s4 = new Point();
 		wheelSpeeds(T4, s4);
-		s5 = new Point();
 		wheelSpeeds(T5, s5);
-
+	}
+	
+	public Point omega1Limits(double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
+		return null;
+	}
+	
+	/**
+	 * Calculates whether given parameters will create a valid path.
+	 * 
+	 * @param omega1 starting target angular velocity
+	 * @param omega2 ending target angular velocity
+	 * @param middleTime time to go from omega1 to omega2
+	 * @param startSpeed starting linear speed
+	 * @param wantedSpeed wanted linear speed at max
+	 * @param endSpeed wanted linear speed once finished
+	 * @param deltaTheta total change in theta from point A to B 
+	 * @return True if the path will be valid
+	 */
+	public static boolean validParameters(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
+		if (deltaTheta * omega1 < 0) {
+			System.out.println("You're trying to accelerate in the wrong direction!");
+			return false;
+		}
+		
+		double tA = Math.abs(ANGLE_MAX_ACCEL) * Math.signum(omega1);
+		if (tA == 0) {
+			tA = Math.abs(ANGLE_MAX_ACCEL);
+		}
+		
+		double A = omega1/tA;
+		double B = middleTime;
+		double C = ( 2*deltaTheta - A*omega1 - B*(omega1+omega2) ) / omega2;
+		
+		double tD = -omega2/C;
+		if (Math.abs(tD) > Math.abs(tA)+0.001 || C < 0) {
+			System.out.println("Trying to decelerate too fast!");
+			return false;
+		}
+		double tM = (omega2-omega1)/B;
+		if (Math.abs(tM) > Math.abs(tA)+0.001) {
+			System.out.println("Trying to change directions too fast!");
+			return false;
+		}
+				
+		double pA = Math.abs(POSITION_MAX_ACCEL) * Math.signum(wantedSpeed - startSpeed);
+		double pD = Math.abs(POSITION_MAX_ACCEL) * Math.signum(endSpeed - wantedSpeed);
+		if (pA == 0) {
+			pA = Math.abs(POSITION_MAX_ACCEL);
+		} else if (pD == 0) {
+			pD = Math.abs(POSITION_MAX_ACCEL);
+		}
+		
+		double Q = (wantedSpeed - startSpeed)/pA;
+		double S = (endSpeed - wantedSpeed)/pD;
+		double R = A + B + C - Q - S;
+		
+		if (R < 0) {
+			System.out.println("Can't reach wantedSpeed in time!");
+			return false;
+		}
+		
+		return true;
 	}
 	
 	/**
@@ -368,7 +453,7 @@ public class Path {
 		return (h1+h2)*(t2-t1)/2;
 	}
 	
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		double time = System.currentTimeMillis();
 		int samples = 1000000;
 		Point point = new Point();
@@ -378,6 +463,6 @@ public class Path {
 		}
 		System.out.println(samples + " samples done!");
 		System.out.println("Took " + (System.currentTimeMillis() - time)/1000 + " seconds.");
-	}
+	}*/
 	
 }

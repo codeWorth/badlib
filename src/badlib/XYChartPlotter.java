@@ -1,3 +1,4 @@
+package badlib;
 import java.awt.Color;
 
 import org.jfree.chart.ChartFactory;
@@ -16,38 +17,31 @@ import org.jfree.ui.RefineryUtilities;
 public class XYChartPlotter extends ApplicationFrame {
 
 	private static final long serialVersionUID = -4407905459601128510L;
+	private static final Point WANTED_POINT = new Point(20, 20);
 
 	public XYChartPlotter(final String title) {
 
 		super(title);
 		
-		/*double[][] params = new double[30][];
+		boolean multi = false;
+		final JFreeChart chart;
 		
-		int n = 0;
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 3; j++) {
-				params[n] = new double[]{1.35, 1.35 - j*0.05, 0.2, 0, 20, 20, Math.PI/8 * i + Math.PI/4};
-				n++;
-				params[n] = new double[]{0.75, 1.35 - j*0.05, 0.2, 0, 20, 20, Math.PI/8 * i + Math.PI/4};
-				n++;
-			}
-		}
+		if (multi) {
+			double[][] params = new double[10][];
 
-		/*final XYDataset dataset = createMultiPathDataset(
-			new double[]{1.35, 1.5, 0.2, 0, 20, 20, Math.PI/4}, 
-			new double[]{1.35, 1.45, 0.2, 0, 20, 20, Math.PI/4},
-			new double[]{1.35, 1.4, 0.2, 0, 20, 20, Math.PI/4},
-			new double[]{1.35, 1.35, 0.2, 0, 20, 20, Math.PI/4},
-			new double[]{1.35, 1.3, 0.2, 0, 20, 20, Math.PI/4},
-			new double[]{1.35, 1.25, 0.2, 0, 20, 20, Math.PI/4}
-		);
-		final XYDataset dataset = createMultiPathDataset(params);
-		final JFreeChart chart = createChart(dataset);*/
-		
-		final XYDataset[] datasets = createSinglePathDataset(2.5, -2.5, 1, 0, 20, 20, 0);
-		final XYDataset left = datasets[0];
-		final XYDataset right = datasets[1];
-		final JFreeChart chart = createChart(left, right);
+			for (int i = 0; i < 10; i++) {
+				params[i] = new double[]{0.5+i*0.05, 0.75, 0.6, 0, 20, 20, Math.PI/4};
+			}
+	
+			final XYDataset dataset = createMultiPathDataset(params);
+			chart = createChart(dataset);
+		} else {
+			
+			final XYDataset[] datasets = createSinglePathDataset(3, -3, 2, 0, 50, 0, 0);
+			final XYDataset left = datasets[0];
+			final XYDataset right = datasets[1];
+			chart = createChart(left, right);
+		}
 		
 		final ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setPreferredSize(new java.awt.Dimension(700, 700));
@@ -68,6 +62,7 @@ public class XYChartPlotter extends ApplicationFrame {
 		final XYSeries omega = new XYSeries("Omega");
 
 		Path path = new Path(w1, w2, b, s, h, e, c);
+		System.out.println(path.duration());
 		Point left = new Point();
 		Point right = new Point();
 		Point speed = new Point();
@@ -87,7 +82,7 @@ public class XYChartPlotter extends ApplicationFrame {
 			leftDist.add(t/path.duration() * 20, dist.x);
 			rightDist.add(t/path.duration() * 20, dist.y);
 			angle.add(t/path.duration() * 20, path.angle(t)*6);
-			omega.add(t/path.duration() * 20, path.omega(t));
+			omega.add(t/path.duration() * 20, path.omega(t)*10);
 		}
 
 		final XYSeriesCollection leftDataset = new XYSeriesCollection();
@@ -110,7 +105,7 @@ public class XYChartPlotter extends ApplicationFrame {
 		final XYSeries[] serieses = new XYSeries[parameters.length];
 		final Path[] paths = new Path[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
-			serieses[i] = new XYSeries("Robot " + String.valueOf(i+1), false);
+			serieses[i] = new XYSeries("time: " + (i/20.0+0.5), false);
 			paths[i] = new Path(parameters[i][0], parameters[i][1], parameters[i][2], parameters[i][3], parameters[i][4], parameters[i][5], parameters[i][6]);
 		}
 
@@ -153,6 +148,11 @@ public class XYChartPlotter extends ApplicationFrame {
 				false                     // urls
 				);
 		
+		XYSeries points = new XYSeries("Points");
+		points.add(WANTED_POINT.x, WANTED_POINT.y);
+		XYSeriesCollection pointsData = new XYSeriesCollection();
+		pointsData.addSeries(points);
+		
 		// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
 		chart.setBackgroundPaint(Color.white);
 
@@ -164,12 +164,14 @@ public class XYChartPlotter extends ApplicationFrame {
 		plot.setBackgroundPaint(Color.lightGray);
 		plot.setDataset(0, left);
 		plot.setDataset(1, right);
+		plot.setDataset(2, pointsData);
 		//    plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
 		plot.setDomainGridlinePaint(Color.white);
 		plot.setRangeGridlinePaint(Color.white);
 
 		final XYLineAndShapeRenderer rendererLeft = new XYLineAndShapeRenderer();
 		final XYLineAndShapeRenderer rendererRight = new XYLineAndShapeRenderer();
+		final XYLineAndShapeRenderer pointRenderer = new XYLineAndShapeRenderer();
 		for (int i = 0; i < left.getSeriesCount(); i++) {
 			rendererLeft.setSeriesLinesVisible(i, true);
 			rendererLeft.setSeriesShapesVisible(i, false);
@@ -177,9 +179,12 @@ public class XYChartPlotter extends ApplicationFrame {
 			rendererRight.setSeriesLinesVisible(i, true);
 			rendererRight.setSeriesShapesVisible(i, false);
 			rendererRight.setSeriesPaint(i, Color.blue);
+			pointRenderer.setLinesVisible(false);
+			pointRenderer.setLinesVisible(true);
 		}
 		plot.setRenderer(0, rendererLeft);
 		plot.setRenderer(1, rendererRight);
+		plot.setRenderer(2, pointRenderer);
 
 		// change the auto tick unit selection to integer units only...
 		final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
