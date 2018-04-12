@@ -6,19 +6,19 @@ package badlib;
  * @author andrew
  *
  */
-public class AccelerationPeriod implements Comparable<AccelerationPeriod> {
+public class Period implements Comparable<Period> {
 
 	public double duration, rate;
 	public boolean angular;
 	
-	public AccelerationPeriod(double duration, double rate, boolean angular) {
+	public Period(double duration, double rate, boolean angular) {
 		this.duration = duration;
 		this.rate = rate;
 		this.angular = angular;
 	}
 	
 	@Override
-	public int compareTo(AccelerationPeriod o) {
+	public int compareTo(Period o) {
 		double delta = this.duration - o.duration;
 		delta += Math.signum(delta);
 		return (int)delta;
