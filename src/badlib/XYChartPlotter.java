@@ -17,7 +17,7 @@ import org.jfree.ui.RefineryUtilities;
 public class XYChartPlotter extends ApplicationFrame {
 
 	private static final long serialVersionUID = -4407905459601128510L;
-	private static final Point WANTED_POINT = new Point(20, 20);
+	private static final Point WANTED_POINT = new Point(9.8045, 10.4888);
 
 	public XYChartPlotter(final String title) {
 
@@ -37,10 +37,11 @@ public class XYChartPlotter extends ApplicationFrame {
 			chart = createChart(dataset);
 		} else {
 			
-			final XYDataset[] datasets = createSinglePathDataset(3, -3, 2, 0, 50, 0, 0);
+			Path path = new Path(2, 1.5, 0.2, 0, 20, 0, Math.PI/2);
+			final XYDataset[] datasets = createSinglePathDataset(path);
 			final XYDataset left = datasets[0];
 			final XYDataset right = datasets[1];
-			chart = createChart(left, right);
+			chart = createChart(left, right, path);
 		}
 		
 		final ChartPanel chartPanel = new ChartPanel(chart);
@@ -49,7 +50,7 @@ public class XYChartPlotter extends ApplicationFrame {
 
 	}
 
-	private XYDataset[] createSinglePathDataset(double w1, double w2, double b, double s, double h, double e, double c) {
+	private XYDataset[] createSinglePathDataset(Path path) {
 
 		final XYSeries leftPos = new XYSeries("Left", false);
 		final XYSeries rightPos = new XYSeries("Right", false);
@@ -61,7 +62,6 @@ public class XYChartPlotter extends ApplicationFrame {
 		final XYSeries angle = new XYSeries("Angle");
 		final XYSeries omega = new XYSeries("Omega");
 
-		Path path = new Path(w1, w2, b, s, h, e, c);
 		System.out.println(path.duration());
 		Point left = new Point();
 		Point right = new Point();
@@ -81,7 +81,7 @@ public class XYChartPlotter extends ApplicationFrame {
 			rightSpeed.add(t/path.duration() * 20, speed.y/2);
 			leftDist.add(t/path.duration() * 20, dist.x);
 			rightDist.add(t/path.duration() * 20, dist.y);
-			angle.add(t/path.duration() * 20, path.angle(t)*6);
+			angle.add(t/path.duration() * 20, path.speed(t));
 			omega.add(t/path.duration() * 20, path.omega(t)*10);
 		}
 
@@ -134,7 +134,7 @@ public class XYChartPlotter extends ApplicationFrame {
 
 	}
 
-	private JFreeChart createChart(final XYDataset left, final XYDataset right) {
+	private JFreeChart createChart(final XYDataset left, final XYDataset right, Path path) {
 
 		// create the chart...
 		final JFreeChart chart = ChartFactory.createXYLineChart(
@@ -149,7 +149,11 @@ public class XYChartPlotter extends ApplicationFrame {
 				);
 		
 		XYSeries points = new XYSeries("Points");
+		Point bah = new Point();
 		points.add(WANTED_POINT.x, WANTED_POINT.y);
+		path.position(path.duration(), bah);
+		points.add(bah.x, bah.y);
+		System.out.println(bah.x + ", " + bah.y);
 		XYSeriesCollection pointsData = new XYSeriesCollection();
 		pointsData.addSeries(points);
 		

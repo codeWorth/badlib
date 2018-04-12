@@ -453,16 +453,10 @@ public class Path {
 		return (h1+h2)*(t2-t1)/2;
 	}
 	
-	/*public static void main(String[] args) {
-		double time = System.currentTimeMillis();
-		int samples = 1000000;
+	public static void main(String[] args) {
 		Point point = new Point();
-		for (int i = 0; i < samples; i++) {
-			Path path = new Path(1.35, 1.15, 0.2, 0, 20, 20, Math.PI/3);
-			path.position(path.duration(), point);
-		}
-		System.out.println(samples + " samples done!");
-		System.out.println("Took " + (System.currentTimeMillis() - time)/1000 + " seconds.");
-	}*/
+		Point wantedPoint = new Point();
+		//Path path = 
+	}
 	
 }
