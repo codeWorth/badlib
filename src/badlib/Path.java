@@ -29,9 +29,18 @@ public class Path {
 	 * @param startSpeed starting linear speed
 	 * @param wantedSpeed wanted linear speed at max
 	 * @param endSpeed wanted linear speed once finished
+	 * @param omegaStartCoast Delay time before angle begins changing when path starts
+	 * @param omegaMiddleCoast Wait time when omega is 0 (if it is 0) around the middle of the path
+	 * @param omegaEndCoast Wait time when omega is 0 at the end of the path before the path finishes
+	 * @param speedStartCoast Delay time before speed starts changing when path starts
+	 * @param speedEndCoast Wait time at end of speed path
 	 * @param deltaTheta total change in theta from point A to B 
 	 */
-	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double omegaStartCoast, double omegaMiddleCoast, double omegaEndCoast, double speedStartCoast, double speedEndCoast, double deltaTheta) {
+	public Path(double omega1, double omega2, double middleTime, double startSpeed, 
+			double wantedSpeed, double endSpeed, double omegaStartCoast, 
+			double omegaMiddleCoast, double omegaEndCoast, double speedStartCoast, 
+			double speedEndCoast, double deltaTheta
+	) {
 		if (deltaTheta * omega1 < 0) {
 			System.out.println("You're trying to accelerate in the wrong direction!");
 			throw new IllegalArgumentException();

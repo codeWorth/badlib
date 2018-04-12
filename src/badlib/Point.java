@@ -6,7 +6,7 @@ package badlib;
  *
  */
 public class Point {
-	double x, y;
+	public double x, y;
 	
 	public Point() {
 		
