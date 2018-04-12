@@ -31,7 +31,7 @@ public class Path {
 	 * @param endSpeed wanted linear speed once finished
 	 * @param deltaTheta total change in theta from point A to B 
 	 */
-	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double omegaStartCoast, double omegaEndCoast, double speedStartCoast, double speedEndCoast, double deltaTheta) {
+	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double omegaStartCoast, double omegaMiddleCoast, double omegaEndCoast, double speedStartCoast, double speedEndCoast, double deltaTheta) {
 		if (deltaTheta * omega1 < 0) {
 			System.out.println("You're trying to accelerate in the wrong direction!");
 			throw new IllegalArgumentException();
@@ -57,7 +57,12 @@ public class Path {
 			throw new IllegalArgumentException();
 		}
 		
-		double T = A + B + C + omegaStartCoast + omegaEndCoast;
+		double D = -omega1 / tM;
+		if (D > B) {
+			D = 0;
+			omegaMiddleCoast = 0;
+		}
+		double T = A + B + C + omegaStartCoast + omegaMiddleCoast + omegaEndCoast;
 		
 		double pA = Math.abs(POSITION_MAX_ACCEL) * Math.signum(wantedSpeed - startSpeed);
 		double pD = Math.abs(POSITION_MAX_ACCEL) * Math.signum(endSpeed - wantedSpeed);
@@ -81,7 +86,9 @@ public class Path {
 				new Period(omegaStartCoast, 0, true),
 				new Period(speedStartCoast, 0, false),
 				new Period(A, tA, true),
-				new Period(B, tM, true),
+				new Period(D, tM, true),
+				//new Period(omegaMiddleCoast, 0, true),
+				new Period(B-D, tM, true),
 				new Period(C, tD, true),
 				new Period(Q, pA, false),
 				new Period(R, 0, false),
@@ -116,7 +123,7 @@ public class Path {
 	 * @param deltaTheta total change in theta from point A to B 
 	 */
 	public Path(double omega1, double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {
-		this(omega1, omega2, middleTime, startSpeed, wantedSpeed, endSpeed, 0, 0, 0, 0, deltaTheta);
+		this(omega1, omega2, middleTime, startSpeed, wantedSpeed, endSpeed, 0, 0, 0, 0, 0, deltaTheta);
 	}
 	
 	public Point omega1Limits(double omega2, double middleTime, double startSpeed, double wantedSpeed, double endSpeed, double deltaTheta) {

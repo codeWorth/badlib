@@ -37,7 +37,7 @@ public class XYChartPlotter extends ApplicationFrame {
 			chart = createChart(dataset);
 		} else {
 			
-			Path path = new Path(2, 1.5, 0.2, 0, 20, 0, 0.3, 0.3, 0, 0, Math.PI/2);
+			Path path = new Path(3, -2.8, 1.15, 0, 20, 0, 0.3, 0.2, 0.3, 0, 0, 0);
 			final XYDataset[] datasets = createSinglePathDataset(path);
 			final XYDataset left = datasets[0];
 			final XYDataset right = datasets[1];
