@@ -1,0 +1,1 @@
+ Make sure to not export XYChartPlotter class when you export the jar, it has a main method in it which screws with JAR files
