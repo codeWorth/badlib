@@ -247,8 +247,8 @@ public class PathMath {
 	 * @param dest Point to be written to
 	 */
 	public static void integrate(double t, double tA, double w, double pA, double s, Point dest) {		
-		if (tA == 0 && w == 0) {
-			dest.x = s * t + pA / 2 * t * t;
+		if (tA == 0 && Math.abs(w) < 0.000001) {
+			dest.x = t * (s + s + pA*t) / 2;
 			dest.y = 0;
 		} else if (tA == 0) {
 			dest.x = (t*pA + s) * cI1S(t, w) + pA * cI2S(t, w);

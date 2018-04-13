@@ -96,13 +96,13 @@ public class Path {
 				new Period(speedStartCoast, 0, false),
 				new Period(A, tA, true),
 				new Period(D, tM, true),
-				//new Period(omegaMiddleCoast, 0, true),
+				new Period(omegaMiddleCoast, 0, true),
 				new Period(B-D, tM, true),
 				new Period(C, tD, true),
 				new Period(Q, pA, false),
 				new Period(R, 0, false),
 				new Period(S, pD, false),
-				new Period(speedStartCoast, 0, false),
+				new Period(speedEndCoast, 0, false),
 				new Period(omegaEndCoast, 0, true)
 			);
 		
@@ -368,6 +368,13 @@ public class Path {
 	
 	private static double area(double h1, double h2, double t1, double t2) {
 		return (h1+h2)*(t2-t1)/2;
+	}
+	
+	public static Path pathToPoint(double startingSpeed, double endingSpeed, double deltaAngle, Point dest) {
+		double omega1 = 0;
+		double omega2 = 0;
+		double middleTime = 0;
+		Path path = new Path(omega1, omega2, middleTime, startingSpeed, endingSpeed, endingSpeed, deltaAngle);
 	}
 	
 }

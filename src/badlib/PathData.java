@@ -174,5 +174,4 @@ public class PathData {
 			return this.speed[index] + this.pA[index] * (t - this.t[index]);
 		}
 	}
-	
 }

@@ -17,7 +17,7 @@ import org.jfree.ui.RefineryUtilities;
 public class XYChartPlotter extends ApplicationFrame {
 
 	private static final long serialVersionUID = -4407905459601128510L;
-	private static final Point WANTED_POINT = new Point(12.587307892309255, 20.432974341568745);
+	private static final Point WANTED_POINT = new Point(14.983182425965932, 10.834066916099124);
 
 	public XYChartPlotter(final String title) {
 
@@ -37,7 +37,8 @@ public class XYChartPlotter extends ApplicationFrame {
 			chart = createChart(dataset);
 		} else {
 			
-			Path path = new Path(3, -2.8, 1.15, 0, 20, 0, 0.3, 0.2, 0.3, 0, 0, 0);
+			double a = 0.5;
+			Path path = new Path(2.8-a, 2.3-a, 0.1+a/3, 0, 20, 0, 0.2, 0.3, 0.5, 0, 0, Math.PI/2 - 0.2);
 			final XYDataset[] datasets = createSinglePathDataset(path);
 			final XYDataset left = datasets[0];
 			final XYDataset right = datasets[1];
@@ -60,20 +61,23 @@ public class XYChartPlotter extends ApplicationFrame {
 		final XYSeries rightSpeed = new XYSeries("Right Speed");
 		
 		final XYSeries angle = new XYSeries("Angle");
-		final XYSeries omega = new XYSeries("Omega");
+		final XYSeries pos = new XYSeries("Position");
 
 		System.out.println(path.duration());
 		Point left = new Point();
 		Point right = new Point();
 		Point speed = new Point();
 		Point dist = new Point();
+		Point centerPos = new Point();
 		
 		int samples = 200;
-		for (int i = 0; i <= samples+30; i ++) {
-			double t = ((double)i) * path.duration() / samples;
+		double t = 0;
+		for (int i = 0; i <= samples; i ++) {
+			t = ((double)i) * path.duration() / samples;
 			path.wheelPositions(t, left, right);
 			path.wheelDistances(t, dist);
 			path.wheelSpeeds(t, speed);
+			path.position(t, centerPos);
 			
 			leftPos.add(left.x, left.y);
 			rightPos.add(right.x, right.y);
@@ -81,8 +85,8 @@ public class XYChartPlotter extends ApplicationFrame {
 			rightSpeed.add(t/path.duration() * 20, speed.y/2);
 			leftDist.add(t/path.duration() * 20, dist.x);
 			rightDist.add(t/path.duration() * 20, dist.y);
-			angle.add(t/path.duration() * 20, path.angle(t)*6);
-			omega.add(t/path.duration() * 20, path.omega(t)*10);
+			angle.add(t/path.duration() * 20, path.omega(t)*6);
+			pos.add(centerPos.x, centerPos.y);
 		}
 
 		final XYSeriesCollection leftDataset = new XYSeriesCollection();
@@ -93,8 +97,8 @@ public class XYChartPlotter extends ApplicationFrame {
 		rightDataset.addSeries(rightSpeed);
 		leftDataset.addSeries(leftDist);
 		rightDataset.addSeries(rightDist);
-		//leftDataset.addSeries(angle);
-		//rightDataset.addSeries(omega);
+		leftDataset.addSeries(angle);
+		rightDataset.addSeries(pos);
 
 		return new XYSeriesCollection[]{leftDataset, rightDataset};
 
